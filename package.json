@@ -1,6 +1,6 @@
 {
   "name": "pi-one-instruction",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Overwrite Pi's instructions with a single INSTRUCTION.md",
   "license": "MIT",
   "repository": {
