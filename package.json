@@ -1,13 +1,17 @@
 {
   "name": "pi-one-instruction",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Overwrite Pi's instructions with a single INSTRUCTION.md",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/dundun6x/pi-one-instruction.git"
   },
-  "keywords": ["pi-package", "pi-extension", "instructions"],
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "instructions"
+  ],
   "files": [
     "index.ts",
     "README.md",
@@ -15,7 +19,9 @@
   ],
   "type": "module",
   "pi": {
-    "extensions": ["./index.ts"]
+    "extensions": [
+      "./index.ts"
+    ]
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
