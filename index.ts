@@ -1,14 +1,25 @@
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
 import { getAgentDir, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { type AutocompleteItem } from "@earendil-works/pi-tui";
 
 export default function (pi: ExtensionAPI) {
-  const conf = join(getAgentDir(), "INSTRUCTION.md");
-  const local_conf = join(process.cwd(), ".pi", "INSTRUCTION.md");
-  const path = [local_conf, conf].find(existsSync);
-  const instr = path ? readFileSync(path, "utf8") : null;
+  let file: string | null;
   let enabled = true;
+  pi.registerFlag("instruction", {
+    description: "Use a custom instruction file",
+    type: "string",
+  });
+  pi.on("session_start", (_event, ctx) => {
+    const arg = pi.getFlag("instruction") as string | undefined;
+    if (arg != null) {
+      file = resolve(ctx.cwd, arg);
+      return;
+    }
+    const user_file = join(getAgentDir(), "INSTRUCTION.md");
+    const project_file = join(process.cwd(), ".pi", "INSTRUCTION.md");
+    file = [project_file, user_file].find(existsSync) ?? null;
+  });
   pi.registerCommand("one-instruction", {
     description: "Toggle one instruction",
     getArgumentCompletions: (prefix): AutocompleteItem[] => {
@@ -25,22 +36,22 @@ export default function (pi: ExtensionAPI) {
         enabled = false;
         ctx.ui.notify("One instruction disabled", "info");
       } else if (value === "view") {
-        if (instr == null) {
+        if (file == null) {
           ctx.ui.notify("INSTRUCTION.md not found in project or user configuration", "warning");
           return;
         }
-        const numbered = instr
+        const numbered = readFileSync(file, "utf8")
           .split("\n")
           .map((line, n) => `${n + 1}  ${line}`)
           .join("\n");
-        ctx.ui.notify(`View: ${path}\n${numbered}`, "info");
+        ctx.ui.notify(`View: ${file}\n${numbered}`, "info");
       } else {
         ctx.ui.notify("Usage: /one-instruction on|off|view", "warning");
       }
     },
   });
   pi.on("before_agent_start", (event) => {
-    if (instr == null || !enabled) return;
-    event.systemPromptOptions.forceSystemPrompt = instr;
+    if (file == null || !enabled) return;
+    event.systemPromptOptions.forceSystemPrompt = readFileSync(file, "utf8");
   });
 }
