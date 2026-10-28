@@ -1,5 +1,5 @@
 import { join } from "node:path"
-import { existsSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { getAgentDir, getMarkdownTheme, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Markdown, type AutocompleteItem } from "@earendil-works/pi-tui";
 
@@ -31,7 +31,7 @@ export default function (pi: ExtensionAPI) {
         enabled = false;
         ctx.ui.notify("One instruction disabled", "info");
       } else if (value === "view") {
-        if (!instr) {
+        if (instr == null) {
           ctx.ui.notify("INSTRUCTION.md not found in project or user configuration", "warning");
           return;
         }
@@ -43,7 +43,7 @@ export default function (pi: ExtensionAPI) {
     },
   });
   pi.on("before_provider_request", (event) => {
-    if (!(instr && enabled)) return;
+    if (instr == null || !enabled) return;
     (event.payload as Record<string, unknown>).instructions = instr;
   });
 }
