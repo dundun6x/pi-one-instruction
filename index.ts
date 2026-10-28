@@ -1,7 +1,7 @@
-import { join } from "node:path"
-import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
-import { getAgentDir, getMarkdownTheme, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { Markdown, type AutocompleteItem } from "@earendil-works/pi-tui";
+import { join } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { getAgentDir, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { type AutocompleteItem } from "@earendil-works/pi-tui";
 
 export default function (pi: ExtensionAPI) {
   const conf = join(getAgentDir(), "INSTRUCTION.md");
@@ -9,12 +9,6 @@ export default function (pi: ExtensionAPI) {
   const path = [local_conf, conf].find(existsSync);
   const instr = path ? readFileSync(path, "utf8") : null;
   let enabled = true;
-  pi.registerEntryRenderer<{ content: string }>(
-    "one-instruction-view",
-    (entry, _options, _theme) => {
-      return new Markdown(entry.data?.content ?? "", 1, 1, getMarkdownTheme());
-    }
-  );
   pi.registerCommand("one-instruction", {
     description: "Toggle one instruction",
     getArgumentCompletions: (prefix): AutocompleteItem[] => {
@@ -35,15 +29,18 @@ export default function (pi: ExtensionAPI) {
           ctx.ui.notify("INSTRUCTION.md not found in project or user configuration", "warning");
           return;
         }
-        ctx.ui.notify("View INSTRUCTION.md", "info");
-        pi.appendEntry("one-instruction-view", { content: instr });
+        const numbered = instr
+          .split("\n")
+          .map((line, n) => `${n + 1}  ${line}`)
+          .join("\n");
+        ctx.ui.notify(`View: ${path}\n${numbered}`, "info");
       } else {
         ctx.ui.notify("Usage: /one-instruction on|off|view", "warning");
       }
     },
   });
-  pi.on("before_provider_request", (event) => {
+  pi.on("before_agent_start", (event) => {
     if (instr == null || !enabled) return;
-    (event.payload as Record<string, unknown>).instructions = instr;
+    event.systemPromptOptions.forceSystemPrompt = instr;
   });
 }
