@@ -4,7 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/pi-one-instruction)](https://www.npmjs.com/package/pi-one-instruction)
 [![license](https://img.shields.io/github/license/dundun6x/pi-one-instruction)](LICENSE)
 
-Overwrite Pi's system prompts with a single instruction file.
+Overwrite [Pi](https://github.com/earendil-works/pi)'s system prompts with a single instruction file.
 
 ## Installation
 
@@ -26,11 +26,7 @@ In-session commands are available:
 - `/one-instruction off` — Disable the custom instruction
 - `/one-instruction view` — View the custom instruction
 
-When enabled (by default), the instruction file will always replace the assembled system prompt, discarding any built-in or additional instructions provided by Pi or extensions.
-
-## Limitation
-
-Although the extension can replace the system prompt sent to the model, it cannot change the underlying session data. As a result, `/session` may report inaccurate input token counts.
+When enabled (by default), the instruction file replaces the assembled system prompt. Any built-in or additional instructions provided by Pi or extensions are discarded. However, they remain in the underlying session data. To prevent them from reaching the model via session history, they are filtered out before being sent.
 
 ## License
 
