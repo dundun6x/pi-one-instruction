@@ -16,9 +16,9 @@ export default function (pi: ExtensionAPI) {
       file = resolve(ctx.cwd, arg);
       return;
     }
-    const user_file = join(getAgentDir(), "INSTRUCTION.md");
-    const project_file = join(process.cwd(), ".pi", "INSTRUCTION.md");
-    file = [project_file, user_file].find(existsSync) ?? null;
+    const userFile = join(getAgentDir(), "INSTRUCTION.md");
+    const projectFile = join(process.cwd(), ".pi", "INSTRUCTION.md");
+    file = [projectFile, userFile].find(existsSync) ?? null;
   });
   pi.registerCommand("one-instruction", {
     description: "Toggle one instruction",
@@ -50,8 +50,19 @@ export default function (pi: ExtensionAPI) {
       }
     },
   });
-  pi.on("before_agent_start", (event) => {
+  pi.on("before_agent_start", () => {
     if (file == null || !enabled) return;
-    event.systemPromptOptions.forceSystemPrompt = readFileSync(file, "utf8");
+    const instr = readFileSync(file, "utf8");
+    return {
+      systemPrompt: instr
+    }
+  });
+  pi.on("before_provider_request", (event) => {
+    if (file == null || !enabled) return;
+    type Message = { role?: string; [key: string]: unknown };
+    const payload = event.payload as { input?: Message[] };
+    if (Array.isArray(payload?.input)) {
+      payload.input = payload.input.filter(msg => msg.role !== "developer");
+    }
   });
 }
